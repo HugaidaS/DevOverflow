@@ -5,7 +5,7 @@ import Navbar from "@/components/navigation/navbar";
 
 const RootLayout = ({ children }: { children: ReactNode }) => {
   return (
-    <main className="background-light850_dark100 realtive">
+    <main className="background-light850_dark100 relative">
       <Navbar />
 
       <div className="flex">
