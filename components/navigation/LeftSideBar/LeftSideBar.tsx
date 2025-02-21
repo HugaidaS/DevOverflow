@@ -1,4 +1,3 @@
-import { LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
@@ -33,7 +32,13 @@ const LeftSidebar = async () => {
               type="submit"
               className="base-medium flex w-fit items-center justify-center gap-5 !bg-transparent p-4 lg:justify-start"
             >
-              <LogOut className="size-6 text-black dark:text-white" />
+              <Image
+                src="/icons/logout.svg"
+                alt="Logout"
+                width={24}
+                height={24}
+                className="invert-colors"
+              />
               <span className="text-dark300_light900 max-lg:hidden">
                 Logout
               </span>
