@@ -30,7 +30,7 @@ const NavLinks = ({ isMobileNav = false }: { isMobileNav?: boolean }) => {
               isActive
                 ? "primary-gradient rounded-lg text-light-900"
                 : "text-dark300_light900",
-              "flex items-center justify-start gap-5 bg-transparent p-4"
+              "flex items-center justify-center gap-5 bg-transparent p-4 lg:justify-start"
             )}
           >
             <Image
@@ -58,7 +58,7 @@ const NavLinks = ({ isMobileNav = false }: { isMobileNav?: boolean }) => {
             {LinkComponent}
           </SheetClose>
         ) : (
-          <React.Fragment key={link.label}> LinkComponent</React.Fragment>
+          <React.Fragment key={link.label}>{LinkComponent}</React.Fragment>
         );
       })}
     </>
