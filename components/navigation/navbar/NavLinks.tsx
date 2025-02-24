@@ -6,6 +6,7 @@ import React from "react";
 
 import { SheetClose } from "@/components/ui/sheet";
 import { sidebarLinks } from "@/constants";
+import ROUTES from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
 const NavLinks = ({
@@ -24,7 +25,7 @@ const NavLinks = ({
           pathName === link.route;
 
         if (link.route === "/profile") {
-          if (userId) link.route = `/profile/${userId}`;
+          if (userId) link.route = ROUTES.PROFILE(userId);
           else return null;
         }
 
