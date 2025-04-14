@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import LocalSearch from "@/components/search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/routes";
 
@@ -15,7 +16,14 @@ const Home = () => {
           <Link href={ROUTES.ASK_QUESTION}>Ask a Question</Link>
         </Button>
       </section>
-      <section className="mt-11">LocalSearch</section>
+      <section className="mt-11">
+        <LocalSearch
+          imgSrc="/icons/search.svg"
+          placeholder="Search for questions..."
+          otherClasses={"flex-1"}
+          route={ROUTES.HOME}
+        />
+      </section>
       HomeFilter
       <div className="mt-10 flex w-full flex-col gap-6">
         <p>Question Card 1</p>
