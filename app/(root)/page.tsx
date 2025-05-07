@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import QuestionCard from "@/components/cards/QuestionCard";
+import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/routes";
@@ -13,11 +15,16 @@ const questions = [
       { _id: "1", name: "React" },
       { _id: "2", name: "JavaScript" },
     ],
-    author: { _id: "1", name: "John Doe" },
+    author: {
+      _id: "1",
+      name: "John Doe",
+      image:
+        "https://static.vecteezy.com/system/resources/thumbnails/002/002/403/small/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
+    },
     upvotes: 10,
     answers: 5,
     views: 100,
-    createdAt: new Date(),
+    createdAt: new Date("2024-10-01T12:00:00Z"),
   },
   {
     _id: "2",
@@ -27,11 +34,16 @@ const questions = [
       { _id: "1", name: "React" },
       { _id: "2", name: "JavaScript" },
     ],
-    author: { _id: "1", name: "John Doe" },
+    author: {
+      _id: "1",
+      name: "John Doe",
+      image:
+        "https://static.vecteezy.com/system/resources/thumbnails/002/002/403/small/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
+    },
     upvotes: 10,
     answers: 5,
     views: 100,
-    createdAt: new Date(),
+    createdAt: new Date("2023-08-01T12:00:00Z"),
   },
 ];
 
@@ -40,11 +52,17 @@ interface SearchParams {
 }
 
 const Home = async ({ searchParams }: SearchParams) => {
-  const { query = "" } = await searchParams;
+  const { query = "", filter = "" } = await searchParams;
 
-  const filteredQuestions = questions.filter((question) =>
-    question.title.toLowerCase().includes(query?.toLowerCase())
-  );
+  const filteredQuestions = questions.filter((question) => {
+    const isQueryMatch = question.title
+      .toLowerCase()
+      .includes(query?.toLowerCase());
+    const isFilterMatch = question.tags.some((tag) =>
+      tag.name.toLowerCase().includes(filter?.toLowerCase())
+    );
+    return isQueryMatch && (filter ? isFilterMatch : true);
+  });
 
   return (
     <>
@@ -65,29 +83,10 @@ const Home = async ({ searchParams }: SearchParams) => {
           route={ROUTES.HOME}
         />
       </section>
-      HomeFilter
+      <HomeFilter />
       <div className="mt-10 flex w-full flex-col gap-6">
         {filteredQuestions.map((question) => (
-          <div
-            key={question._id}
-            className="bg-light800_darkgradient flex flex-col gap-4 rounded-[10px] p-6"
-          >
-            <h2 className="text-dark100_light900 h2-bold">{question.title}</h2>
-            <p className="text-dark300_light700">{question.description}</p>
-            <div className="flex justify-between">
-              <div className="flex gap-4">
-                {question.tags.map((tag) => (
-                  <span
-                    key={tag._id}
-                    className="bg-light200_dark600 text-dark100_light900 rounded-full px-3 py-1 text-sm"
-                  >
-                    {tag.name}
-                  </span>
-                ))}
-              </div>
-              <span>{question.upvotes} Upvotes</span>
-            </div>
-          </div>
+          <QuestionCard question={question} key={question._id} />
         ))}
       </div>
     </>
