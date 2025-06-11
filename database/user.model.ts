@@ -5,13 +5,13 @@ export interface IUser {
   username: string;
   email: string;
   bio?: string;
-  image?: string;
+  image: string;
   location?: string;
   portfolio?: string;
   reputation?: number;
 }
 
-const UserSchema = new Schema(
+const UserSchema = new Schema<IUser>(
   {
     name: {
       type: String,
