@@ -1,11 +1,13 @@
-import mongoose, { models, Schema } from "mongoose";
+import mongoose, { Document, models, Schema, Types } from "mongoose";
 
 export interface IInteraction {
-  user: mongoose.Types.ObjectId;
+  user: Types.ObjectId;
   action: string; // e.g., "upvote", "downvote", "comment"
-  actionId: mongoose.Types.ObjectId; // ID of the Question or Answer
+  actionId: Types.ObjectId; // ID of the Question or Answer
   actionType: "Question" | "Answer"; // Type of the action target
 }
+
+export interface IInteractionDoc extends IInteraction, Document {}
 
 const InteractionSchema = new Schema<IInteraction>(
   {
