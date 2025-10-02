@@ -1,5 +1,6 @@
 import { IAccount } from "@/database/account.model";
 import { IUser } from "@/database/user.model";
+import { SigninWithOAuthParams } from "@/types/action";
 
 import { fetchHandler } from "./fetch";
 
@@ -51,6 +52,13 @@ export const api = {
     delete: (id: string) =>
       fetchHandler(`${API_BASE_URL}/accounts/${id}`, {
         method: "DELETE",
+      }),
+  },
+  auth: {
+    oAuthSignIn: (data: SigninWithOAuthParams) =>
+      fetchHandler(`${API_BASE_URL}/auth/signin-with-oauth`, {
+        method: "POST",
+        body: JSON.stringify(data),
       }),
   },
 };
