@@ -1,4 +1,4 @@
-import mongoose, { Document, models, Schema, Types } from "mongoose";
+import { model, models, Schema, Types, Document } from "mongoose";
 
 export interface ITagQuestion {
   tag: Types.ObjectId;
@@ -6,19 +6,15 @@ export interface ITagQuestion {
 }
 
 export interface ITagQuestionDoc extends ITagQuestion, Document {}
-
 const TagQuestionSchema = new Schema<ITagQuestion>(
   {
     tag: { type: Schema.Types.ObjectId, ref: "Tag", required: true },
     question: { type: Schema.Types.ObjectId, ref: "Question", required: true },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 const TagQuestion =
-  models?.TagQuestion ||
-  mongoose.model<ITagQuestion>("TagQuestion", TagQuestionSchema);
+  models?.TagQuestion || model<ITagQuestion>("TagQuestion", TagQuestionSchema);
 
 export default TagQuestion;

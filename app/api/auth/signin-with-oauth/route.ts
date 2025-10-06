@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { NextResponse } from "next/server";
 import slugify from "slugify";
 
 import Account from "@/database/account.model";
@@ -11,14 +12,12 @@ import { APIErrorResponse } from "@/types/global";
 
 export async function POST(request: Request) {
   const { provider, providerAccountId, user } = await request.json();
+
   await dbConnect();
 
   const session = await mongoose.startSession();
-  // atomic function, reverts changes if any operation fails
   session.startTransaction();
 
-  // if we try to create an account => Fails
-  // we try to create a user => Fails
   try {
     const validatedData = SignInWithOAuthSchema.safeParse({
       provider,
@@ -37,35 +36,28 @@ export async function POST(request: Request) {
       trim: true,
     });
 
-    // Check if username or email already exists
     let existingUser = await User.findOne({ email }).session(session);
 
-    if (existingUser) {
-      existingUser = await User.create(
-        [
-          {
-            name,
-            username: slugifiedUsername,
-            email,
-            image,
-          },
-        ],
+    if (!existingUser) {
+      [existingUser] = await User.create(
+        [{ name, username: slugifiedUsername, email, image }],
         { session }
       );
     } else {
       const updatedData: { name?: string; image?: string } = {};
+
       if (existingUser.name !== name) updatedData.name = name;
       if (existingUser.image !== image) updatedData.image = image;
+
       if (Object.keys(updatedData).length > 0) {
         await User.updateOne(
           { _id: existingUser._id },
-          { $set: updatedData },
-          { session }
-        );
+          { $set: updatedData }
+        ).session(session);
       }
     }
 
-    const existingAccount = Account.findOne({
+    const existingAccount = await Account.findOne({
       userId: existingUser._id,
       provider,
       providerAccountId,
@@ -86,9 +78,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // apply changes atomicly - all or nothing
     await session.commitTransaction();
-  } catch (error) {
+
+    return NextResponse.json({ success: true });
+  } catch (error: unknown) {
     await session.abortTransaction();
     return handleError(error, "api") as APIErrorResponse;
   } finally {
