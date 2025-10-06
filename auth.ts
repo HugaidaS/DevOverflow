@@ -16,7 +16,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return session;
     },
-    async jwt({ token, account }) {
+    async jwt({ token, account, session }) {
       if (!account) return token;
 
       const { data: existingAccount, success } =
@@ -30,6 +30,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       const userId = existingAccount.userId.toString();
       token.sub = userId;
+
+      return session;
     },
     async signIn({ user, account, profile }) {
       if (account?.type === "credentials") return true;
