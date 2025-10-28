@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
 
 import logger from "@/lib/logger";
 
@@ -45,7 +45,7 @@ const handleError = (error: unknown, responseType: ResponseType = "server") => {
 
   if (error instanceof ZodError) {
     const validationError = new ValidationError(
-      error.flatten().fieldErrors as Record<string, string[]>
+      z.treeifyError(error) as Record<string, string[]>
     );
 
     logger.error(
