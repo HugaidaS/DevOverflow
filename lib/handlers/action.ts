@@ -1,20 +1,24 @@
 "use server";
 
 import { Session } from "next-auth";
-import z, { ZodError, ZodType } from "zod";
+import { ZodError, ZodSchema } from "zod";
 
 import { auth } from "@/auth";
-import dbConnect from "@/lib/mongoose";
 
 import { UnauthorizedError, ValidationError } from "../http-errors";
+import dbConnect from "../mongoose";
 
 type ActionOptions<T> = {
   params?: T;
-  schema?: ZodType<T>;
+  schema?: ZodSchema<T>;
   authorize?: boolean;
 };
 
-// Check the schema, authorize, and connect to database, so we can safely proceed with the action.
+// 1. Checking whether the schema and params are provided and validated.
+// 2. Checking whether the user is authorized.
+// 3. Connecting to the database.
+// 4. Returning the params and session.
+
 async function action<T>({
   params,
   schema,
@@ -26,10 +30,10 @@ async function action<T>({
     } catch (error) {
       if (error instanceof ZodError) {
         return new ValidationError(
-          z.treeifyError(error) as Record<string, string[]>
+          error.flatten().fieldErrors as Record<string, string[]>
         );
       } else {
-        return Error("Schema validation failed");
+        return new Error("Schema validation failed");
       }
     }
   }
@@ -40,11 +44,13 @@ async function action<T>({
     session = await auth();
 
     if (!session) {
-      return new UnauthorizedError("Unauthorized");
+      return new UnauthorizedError(
+        "You are not authorized to perform this action"
+      );
     }
-
-    await dbConnect();
   }
+
+  await dbConnect();
 
   return { params, session };
 }
