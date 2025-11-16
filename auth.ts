@@ -1,15 +1,15 @@
-import Credentials from "@auth/core/providers/credentials";
-import GitHub from "@auth/core/providers/github";
-import Google from "@auth/core/providers/google";
 import bcrypt from "bcryptjs";
 import NextAuth from "next-auth";
+import Credentials from "next-auth/providers/credentials";
+import GitHub from "next-auth/providers/github";
+import Google from "next-auth/providers/google";
 
-import { IUserDoc } from "@/database/user.model";
-import { SignInSchema } from "@/lib/validations";
+import { ActionResponse } from "@/types/global";
 
 import { IAccountDoc } from "./database/account.model";
+import { IUserDoc } from "./database/user.model";
 import { api } from "./lib/api";
-import { ActionResponse } from "./types/global";
+import { SignInSchema } from "./lib/validations";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -21,7 +21,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (validatedFields.success) {
           const { email, password } = validatedFields.data;
-          const { data: existingAccount } = (await api.users.getByProvider(
+
+          const { data: existingAccount } = (await api.accounts.getByProvider(
             email
           )) as ActionResponse<IAccountDoc>;
 
@@ -47,71 +48,56 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             };
           }
         }
-
         return null;
       },
     }),
   ],
-  //  By default, the `id` property does not exist on `token` or `session`. See the [TypeScript](https://authjs.dev/getting-started/typescript) on how to add it.
   callbacks: {
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.sub!;
+      session.user.id = token.sub as string;
+      return session;
+    },
+    async jwt({ token, account }) {
+      if (account) {
+        const { data: existingAccount, success } =
+          (await api.accounts.getByProvider(
+            account.type === "credentials"
+              ? token.email!
+              : account.providerAccountId
+          )) as ActionResponse<IAccountDoc>;
+
+        if (!success || !existingAccount) return token;
+
+        const userId = existingAccount.userId;
+
+        if (userId) token.sub = userId.toString();
       }
-      return session;
+
+      return token;
     },
-    async jwt({ token, account, session }) {
-      if (!account) return token;
-
-      const { data: existingAccount, success } =
-        (await api.accounts.getByProvider(
-          account.type === "credentials"
-            ? token.email!
-            : account.providerAccountId
-        )) as ActionResponse<IAccountDoc>;
-
-      if (!success || !existingAccount) return token;
-
-      const userId = existingAccount.userId.toString();
-      token.sub = userId;
-
-      return session;
-    },
-    async signIn({ user, account, profile }) {
+    async signIn({ user, profile, account }) {
       if (account?.type === "credentials") return true;
-
       if (!account || !user) return false;
 
       const userInfo = {
         name: user.name!,
         email: user.email!,
+        image: user.image!,
         username:
           account.provider === "github"
             ? (profile?.login as string)
-            : user.name?.toLowerCase(),
-        image: user.image!,
+            : (user.name?.toLowerCase() as string),
       };
 
       const { success } = (await api.auth.oAuthSignIn({
         user: userInfo,
-        provider: account.provider as "google" | "github",
+        provider: account.provider as "github" | "google",
         providerAccountId: account.providerAccountId,
       })) as ActionResponse;
 
       if (!success) return false;
 
-      return success;
+      return true;
     },
   },
 });
-
-// {
-//   async authorize(credentials) {
-//   const validatedFields = SignInSchema.safeParse(credentials);
-//
-//   if (validatedFields.success) {
-//     const { email, password } = validatedFields.data;
-//     const {data: existingUser} = awaiit api.users.getByProvider({email})
-//   }
-// },
-// }

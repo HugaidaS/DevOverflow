@@ -44,9 +44,7 @@ async function action<T>({
     session = await auth();
 
     if (!session) {
-      return new UnauthorizedError(
-        "You are not authorized to perform this action"
-      );
+      return new UnauthorizedError("Unauthorized");
     }
   }
 

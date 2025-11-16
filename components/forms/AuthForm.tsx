@@ -27,28 +27,29 @@ import { toast } from "@/hooks/use-toast";
 import { ActionResponse } from "@/types/global";
 
 interface AuthFormProps<T extends FieldValues> {
-  formType: "SIGN_IN" | "SIGN_UP";
   schema: ZodType<T>;
   defaultValues: T;
   onSubmit: (data: T) => Promise<ActionResponse>;
+  formType: "SIGN_IN" | "SIGN_UP";
 }
 
 const AuthForm = <T extends FieldValues>({
-  formType,
   schema,
   defaultValues,
+  formType,
   onSubmit,
 }: AuthFormProps<T>) => {
   const router = useRouter();
+
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: defaultValues as DefaultValues<T>,
   });
 
   const handleSubmit: SubmitHandler<T> = async (data) => {
-    const result = await onSubmit(data);
+    const result = (await onSubmit(data)) as ActionResponse;
 
-    if (result.success) {
+    if (result?.success) {
       toast({
         title: "Success",
         description:
@@ -60,7 +61,7 @@ const AuthForm = <T extends FieldValues>({
       router.push(ROUTES.HOME);
     } else {
       toast({
-        title: "Error",
+        title: `Error ${result?.status}`,
         description: result?.error?.message,
         variant: "destructive",
       });
@@ -75,16 +76,16 @@ const AuthForm = <T extends FieldValues>({
         onSubmit={form.handleSubmit(handleSubmit)}
         className="mt-10 space-y-6"
       >
-        {Object.keys(defaultValues).map((key) => (
+        {Object.keys(defaultValues).map((field) => (
           <FormField
-            key={key}
+            key={field}
             control={form.control}
-            name={key as Path<T>}
+            name={field as Path<T>}
             render={({ field }) => (
               <FormItem className="flex w-full flex-col gap-2.5">
                 <FormLabel className="paragraph-medium text-dark400_light700">
                   {field.name === "email"
-                    ? "Email address"
+                    ? "Email Address"
                     : field.name.charAt(0).toUpperCase() + field.name.slice(1)}
                 </FormLabel>
                 <FormControl>
@@ -92,8 +93,7 @@ const AuthForm = <T extends FieldValues>({
                     required
                     type={field.name === "password" ? "password" : "text"}
                     {...field}
-                    className="paragraph-regular background-light900_dark300 light-border-2 text-dark300_light700 no-focus min-h-12
-                    rounded-1.5 border"
+                    className="paragraph-regular background-light900_dark300 light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
                   />
                 </FormControl>
                 <FormMessage />
@@ -106,10 +106,13 @@ const AuthForm = <T extends FieldValues>({
           disabled={form.formState.isSubmitting}
           className="primary-gradient paragraph-medium min-h-12 w-full rounded-2 px-4 py-3 font-inter !text-light-900"
         >
-          {form.formState.isSubmitting ? "Loading..." : buttonText}
+          {form.formState.isSubmitting
+            ? buttonText === "Sign In"
+              ? "Signin In..."
+              : "Signing Up..."
+            : buttonText}
         </Button>
 
-        {/* TODO: fix this later */}
         {formType === "SIGN_IN" ? (
           <p>
             Don&apos;t have an account?{" "}
@@ -117,7 +120,7 @@ const AuthForm = <T extends FieldValues>({
               href={ROUTES.SIGN_UP}
               className="paragraph-semibold primary-text-gradient"
             >
-              Sign Up
+              Sign up
             </Link>
           </p>
         ) : (
@@ -127,7 +130,7 @@ const AuthForm = <T extends FieldValues>({
               href={ROUTES.SIGN_IN}
               className="paragraph-semibold primary-text-gradient"
             >
-              Sign In
+              Sign in
             </Link>
           </p>
         )}
