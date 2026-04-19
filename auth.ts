@@ -95,9 +95,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         providerAccountId: account.providerAccountId,
       })) as ActionResponse;
 
-      if (!success) return false;
-
-      return true;
+      return success;
     },
   },
 });
