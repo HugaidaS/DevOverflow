@@ -1,3 +1,4 @@
+import { LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
@@ -10,8 +11,6 @@ import ROUTES from "@/constants/routes";
 const LeftSidebar = async () => {
   const session = await auth();
   const userId = session?.user?.id;
-
-  console.log(userId, session);
 
   return (
     <section className="background-light900_dark200 light-border sticky left-0 top-0 flex h-screen flex-col justify-between overflow-y-auto border-r p-6 pt-28 shadow-light-300 dark:shadow-none max-sm:hidden lg:w-[266px]">
@@ -32,13 +31,7 @@ const LeftSidebar = async () => {
               type="submit"
               className="base-medium flex w-fit items-center justify-center gap-5 !bg-transparent p-4 lg:justify-start"
             >
-              <Image
-                src="/icons/logout.svg"
-                alt="Logout"
-                width={24}
-                height={24}
-                className="invert-colors"
-              />
+              <LogOut className="size-5 text-black dark:text-white" />
               <span className="text-dark300_light900 max-lg:hidden">
                 Logout
               </span>
