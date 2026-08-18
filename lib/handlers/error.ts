@@ -72,6 +72,7 @@ const handleError = (error: unknown, responseType: ResponseType = "server") => {
     );
     return formatResponse(responseType, 500, error.message, undefined);
   }
+
 };
 
 export default handleError;

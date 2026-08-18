@@ -29,9 +29,7 @@ async function action<T>({
       schema.parse(params);
     } catch (error) {
       if (error instanceof ZodError) {
-        return new ValidationError(
-          z.treeifyError(error) as Record<string, string[]>
-        );
+        return new ValidationError(z.treeifyError(error));
       } else {
         return new Error("Schema validation failed");
       }
