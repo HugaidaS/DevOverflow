@@ -5,6 +5,7 @@ interface Tag {
   name: string;
 }
 
+// TODO: it is in fact not used, author in Question returns just ID by which we fetch the author
 interface Author {
   _id: string;
   name: string;
@@ -14,8 +15,9 @@ interface Author {
 interface Question {
   _id: string;
   title: string;
+  content: string;
   tags: Tag[];
-  author: Author;
+  author: string;
   createdAt: Date;
   upvotes: number;
   answers: number;

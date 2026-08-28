@@ -23,15 +23,21 @@ import {
 import { Input } from "@/components/ui/input";
 import ROUTES from "@/constants/routes";
 import { toast } from "@/hooks/use-toast";
-import { createQuestion } from "@/lib/actions/question.action";
+import { createQuestion, editQuestion } from "@/lib/actions/question.action";
 import { AskQuestionSchema } from "@/lib/validations";
+import { Question } from "@/types/global";
 
 const Editor = dynamic(() => import("@/components/editor"), {
   // Make sure we turn SSR off
   ssr: false,
 });
 
-const QuestionForm = () => {
+interface QuestionFormProps {
+  question?: Question;
+  isEdit?: boolean;
+}
+
+const QuestionForm = ({ question, isEdit = false }: QuestionFormProps) => {
   const router = useRouter();
   const editorRef = useRef<MDXEditorMethods>(null);
   const [isPending, startTransition] = useTransition();
@@ -39,9 +45,9 @@ const QuestionForm = () => {
   const form = useForm<z.infer<typeof AskQuestionSchema>>({
     resolver: zodResolver(AskQuestionSchema),
     defaultValues: {
-      title: "",
-      content: "",
-      tags: [],
+      title: question?.title || "",
+      content: question?.content || "",
+      tags: question?.tags.map((tag) => tag.name) || [],
     },
   });
 
@@ -49,23 +55,31 @@ const QuestionForm = () => {
     data: z.infer<typeof AskQuestionSchema>
   ) => {
     startTransition(async () => {
-      const result = await createQuestion(data);
+      const result =
+        isEdit && question
+          ? await editQuestion({
+              questionId: question._id,
+              ...data,
+            })
+          : await createQuestion(data);
 
-      if (result.success) {
+      if (!result.success) {
         toast({
-          title: "Success",
-          description: "Question successfully created!",
+          title: "Error",
+          description: result.error?.message ?? "Question failed!",
+          variant: "destructive",
         });
 
-        if (result.data) {
-          router.push(ROUTES.QUESTION(result.data?._id));
-        } else {
-          toast({
-            title: "Error",
-            description: result.error?.message ?? "Question failed!",
-            variant: "destructive",
-          });
-        }
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: `Question successfully ${isEdit ? "updated" : "created"}!`,
+      });
+
+      if (result.data?._id) {
+        router.push(ROUTES.QUESTION(result.data._id));
       }
     });
   };
@@ -79,6 +93,15 @@ const QuestionForm = () => {
       const tagInput = e.currentTarget.value.trim();
 
       if (tagInput && tagInput.length < 15 && !field.value.includes(tagInput)) {
+        if (form.getValues("tags").length === 3) {
+          form.setError("tags", {
+            type: "manual",
+            message: "You can't add more than 3 tags",
+          });
+
+          return;
+        }
+
         form.setValue("tags", [...field.value, tagInput]);
         e.currentTarget.value = ""; // Clear the input after adding the tag
         form.clearErrors("tags");
@@ -217,7 +240,7 @@ const QuestionForm = () => {
                   <span>Submitting</span>
                 </>
               ) : (
-                <span>Ask a question</span>
+                <span>{isEdit ? "Edit" : "Ask"} a question</span>
               )}
             </Button>
           </div>
