@@ -5,6 +5,7 @@ import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/routes";
+import { getQuestions } from "@/lib/actions/question.action";
 
 const questions = [
   {
@@ -52,17 +53,26 @@ interface SearchParams {
 }
 
 const Home = async ({ searchParams }: SearchParams) => {
-  const { query = "", filter = "" } = await searchParams;
+  const { page, pageSize, query, filter } = await searchParams;
 
-  const filteredQuestions = questions.filter((question) => {
-    const isQueryMatch = question.title
-      .toLowerCase()
-      .includes(query?.toLowerCase());
-    const isFilterMatch = question.tags.some((tag) =>
-      tag.name.toLowerCase().includes(filter?.toLowerCase())
-    );
-    return isQueryMatch && (filter ? isFilterMatch : true);
+  const { success, data, error } = await getQuestions({
+    page: Number(page) || 1,
+    pageSize: Number(pageSize) || 10,
+    query: query || "",
+    filter: filter || "",
   });
+
+  const { questions } = data || {};
+
+  // const filteredQuestions = questions.filter((question) => {
+  //   const isQueryMatch = question.title
+  //     .toLowerCase()
+  //     .includes(query?.toLowerCase());
+  //   const isFilterMatch = question.tags.some((tag) =>
+  //     tag.name.toLowerCase().includes(filter?.toLowerCase())
+  //   );
+  //   return isQueryMatch && (filter ? isFilterMatch : true);
+  // });
 
   return (
     <>
@@ -84,11 +94,25 @@ const Home = async ({ searchParams }: SearchParams) => {
         />
       </section>
       <HomeFilter />
-      <div className="mt-10 flex w-full flex-col gap-6">
-        {filteredQuestions.map((question) => (
-          <QuestionCard question={question} key={question._id} />
-        ))}
-      </div>
+      {success ? (
+        <div className="mt-10 flex w-full flex-col gap-6">
+          {questions && questions.length > 0 ? (
+            questions.map((question) => (
+              <QuestionCard question={question} key={question._id} />
+            ))
+          ) : (
+            <div className="mt-10 flex w-full items-center justify-center">
+              <p className="text-dark400_light700">No questions found</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="mt-10 flex w-full items-center justify-center">
+          <p className="text-dark400_light700">
+            {error?.message || "Failed to fetch questions."}
+          </p>
+        </div>
+      )}
     </>
   );
 };

@@ -17,7 +17,7 @@ interface Question {
   title: string;
   content: string;
   tags: Tag[];
-  author: string;
+  author: Author;
   createdAt: Date;
   upvotes: number;
   answers: number;
@@ -43,4 +43,12 @@ type APIResponse<T = null> = NextResponse<SuccessResponse<T> | ErrorResponse>;
 interface RouteParams {
   params: Promise<Recors<string, string>>;
   searchParams: Promise<Recors<string, string>>;
+}
+
+interface PaginatedSearchParams {
+  page?: number;
+  pageSize?: number;
+  query?: string;
+  filter?: string;
+  sort?: string;
 }
