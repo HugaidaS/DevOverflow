@@ -1,18 +1,20 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-import { techMap } from "@/constants/techMap";
+import { findTech } from "@/constants/techMap";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const getDeviconClassName = (techName: string) => {
-  const normalizedTechName = techName.replace(/[ .]/g, "").toLowerCase();
+export const getDeviconClassName = (techName: string): string => {
+  const tech = findTech(techName);
+  return tech ? `${tech.icon} colored` : "devicon-devicon-plain";
+};
 
-  return techMap[normalizedTechName]
-    ? `${techMap[normalizedTechName]} colored`
-    : "devicon-devicon-plain";
+export const getTechDescription = (techName: string): string => {
+  const tech = findTech(techName);
+  return tech?.description ?? "A technology used in software development.";
 };
 
 export const getTimeStamp = (createdAt: Date) => {

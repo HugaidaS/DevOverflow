@@ -1,12 +1,14 @@
 import React from "react";
 
+import TagCard from "@/components/cards/TagCard";
+import DataRenderer from "@/components/DataRenderer";
+import LocalSearch from "@/components/search/LocalSearch";
+import ROUTES from "@/constants/routes";
+import { EMPTY_TAGS } from "@/constants/states";
 import { getTags } from "@/lib/actions/tag.action";
+import { RouteParams } from "@/types/global";
 
-interface SearchParams {
-  searchParams: Promise<{ [key: string]: string }>;
-}
-
-const Tags = async ({ searchParams }: SearchParams) => {
+const Tags = async ({ searchParams }: RouteParams) => {
   const { page, pageSize, query, filter } = await searchParams;
 
   const { success, data, error } = await getTags({
@@ -16,7 +18,35 @@ const Tags = async ({ searchParams }: SearchParams) => {
     filter: filter || "",
   });
 
-  console.log({ success, data, error });
-  return <div>Tags</div>;
+  const { tags } = data || {};
+
+  console.log("tags", tags);
+
+  return (
+    <>
+      <h1 className="text-dark100_light900 h1-bold text-3xl">Tags</h1>
+      <section className="mt-11">
+        <LocalSearch
+          imgSrc="/icons/search.svg"
+          placeholder="Search tags..."
+          route={ROUTES.TAGS}
+          otherClasses="flex-1"
+        />
+      </section>
+      <DataRenderer
+        success={success}
+        data={tags}
+        error={error}
+        empty={EMPTY_TAGS}
+        render={(tags) => (
+          <div className="mt-10 flex w-full flex-wrap gap-4">
+            {tags.map((tag) => (
+              <TagCard {...tag} key={tag._id} />
+            ))}
+          </div>
+        )}
+      />
+    </>
+  );
 };
 export default Tags;

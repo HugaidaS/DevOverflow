@@ -2,11 +2,7 @@
 
 import { FilterQuery } from "mongoose";
 
-import QuestionModel from "@/database/question.model";
 import TagModel from "@/database/tag.model";
-import action from "@/lib/handlers/action";
-import handleError from "@/lib/handlers/error";
-import { PaginatedSearchParamsSchema } from "@/lib/validations";
 import {
   ActionResponse,
   ErrorResponse,
@@ -14,9 +10,13 @@ import {
   Tag,
 } from "@/types/global";
 
-export async function getTags(
+import action from "../handlers/action";
+import handleError from "../handlers/error";
+import { PaginatedSearchParamsSchema } from "../validations";
+
+export const getTags = async (
   params: PaginatedSearchParams
-): Promise<ActionResponse<{ tags: Tag[]; isNext: boolean }>> {
+): Promise<ActionResponse<{ tags: Tag[]; isNext: boolean }>> => {
   const validationResult = await action({
     params,
     schema: PaginatedSearchParamsSchema,
@@ -26,28 +26,15 @@ export async function getTags(
     return handleError(validationResult) as ErrorResponse;
   }
 
-  const { page = 1, pageSize = 10, query, filter } = validationResult.params!;
+  const { page = 1, pageSize = 10, query, filter } = params;
 
-  const skip = (page - 1) * pageSize;
-  const limit = pageSize;
+  const skip = (Number(page) - 1) * pageSize;
+  const limit = Number(pageSize);
 
-  const constructedFilterQuery: FilterQuery<typeof QuestionModel> = {};
-
-  if (filter === "recommended") {
-    return {
-      success: true,
-      data: {
-        tags: [],
-        isNext: false,
-      },
-    };
-  }
+  const filterQuery: FilterQuery<typeof TagModel> = {};
 
   if (query) {
-    constructedFilterQuery.$or = [
-      { title: { $regex: new RegExp(`^${query}$`, "i") } },
-      { content: { $regex: new RegExp(`^${query}$`, "i") } },
-    ];
+    filterQuery.$or = [{ name: { $regex: query, $options: "i" } }];
   }
 
   let sortCriteria = {};
@@ -71,26 +58,23 @@ export async function getTags(
   }
 
   try {
-    const totalQuestions = await TagModel.countDocuments(
-      constructedFilterQuery
-    );
+    const totalTags = await TagModel.countDocuments(filterQuery);
 
-    const questions = await TagModel.find(constructedFilterQuery)
+    const tags = await TagModel.find(filterQuery)
       .sort(sortCriteria)
       .skip(skip)
       .limit(limit);
 
-    const isNext = totalQuestions > skip + questions.length;
+    const isNext = totalTags > skip + tags.length;
 
     return {
       success: true,
       data: {
-        // Parsing fixes the error with passing large json payloads in server actions
-        tags: JSON.parse(JSON.stringify(questions)),
+        tags: JSON.parse(JSON.stringify(tags)),
         isNext,
       },
     };
-  } catch (err) {
-    return handleError(err) as ErrorResponse;
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
   }
-}
+};

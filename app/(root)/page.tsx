@@ -8,12 +8,9 @@ import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/routes";
 import { EMPTY_QUESTION } from "@/constants/states";
 import { getQuestions } from "@/lib/actions/question.action";
+import { RouteParams } from "@/types/global";
 
-interface SearchParams {
-  searchParams: Promise<{ [key: string]: string }>;
-}
-
-const Home = async ({ searchParams }: SearchParams) => {
+const Home = async ({ searchParams }: RouteParams) => {
   const { page, pageSize, query, filter } = await searchParams;
 
   const { success, data, error } = await getQuestions({
@@ -24,16 +21,6 @@ const Home = async ({ searchParams }: SearchParams) => {
   });
 
   const { questions } = data || {};
-
-  // const filteredQuestions = questions.filter((question) => {
-  //   const isQueryMatch = question.title
-  //     .toLowerCase()
-  //     .includes(query?.toLowerCase());
-  //   const isFilterMatch = question.tags.some((tag) =>
-  //     tag.name.toLowerCase().includes(filter?.toLowerCase())
-  //   );
-  //   return isQueryMatch && (filter ? isFilterMatch : true);
-  // });
 
   return (
     <>
