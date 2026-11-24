@@ -88,7 +88,7 @@ export const getTags = async (
 export const getTagQuestions = async (
   params: GetTagQuestionsParams
 ): Promise<
-  ActionResponse<{ tags: Tag; questions: Question; isNext: boolean }>
+  ActionResponse<{ tag: Tag; questions: Question[]; isNext: boolean }>
 > => {
   const validationResult = await action({
     params,
@@ -129,7 +129,7 @@ export const getTagQuestions = async (
     return {
       success: true,
       data: {
-        tags: JSON.parse(JSON.stringify(tag)),
+        tag: JSON.parse(JSON.stringify(tag)),
         questions: JSON.parse(JSON.stringify(questions)),
         isNext,
       },
