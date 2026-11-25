@@ -120,7 +120,10 @@ export const getTagQuestions = async (
 
     const questions = await QuestionModel.find(filterQuery)
       .select("_id title views answers upvotes downvotes author createdAt")
-      .populate([{ path: "author", select: "name image" }])
+      .populate([
+        { path: "author", select: "name image" },
+        { path: "tags", select: "_id name" },
+      ])
       .skip(skip)
       .limit(limit);
 
